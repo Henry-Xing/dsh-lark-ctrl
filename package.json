@@ -1,0 +1,47 @@
+{
+  "name": "dsh-lark-ctrl",
+  "version": "0.2.5",
+  "description": "Lark/Feishu bridge for DeepSeek Harness: run summaries, interactive question/approval cards, workspace/session creation, and hash-addressed prompts from your phone.",
+  "type": "module",
+  "license": "MIT",
+  "author": "kix6lj",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kix6lj/dsh-lark-ctrl.git"
+  },
+  "homepage": "https://github.com/kix6lj/dsh-lark-ctrl#readme",
+  "bugs": {
+    "url": "https://github.com/kix6lj/dsh-lark-ctrl/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "lark",
+    "feishu"
+  ],
+  "icon": "./icon.svg",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    "LICENSE",
+    "index.js",
+    "lib",
+    "cordis.patch.yml",
+    "icon.svg",
+    "locale/*.json",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

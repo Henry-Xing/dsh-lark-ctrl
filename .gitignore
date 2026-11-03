@@ -1,0 +1,19 @@
+# Dependencies / build output
+node_modules/
+coverage/
+.nyc_output/
+*.tgz
+
+# Local DSH runtime state and logs
+state.json
+storages/
+*.log
+*.ndjson
+.plugin-manager/
+
+# Local environment / editor files
+.env
+.env.*
+.DS_Store
+.idea/
+.vscode/

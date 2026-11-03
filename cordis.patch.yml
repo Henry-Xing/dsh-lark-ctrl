@@ -1,0 +1,59 @@
+# dsh-lark-ctrl: Lark/Feishu bridge for DeepSeek Harness.
+#
+# Every value below is only the default a fresh install starts from; override
+# it in this profile's cordis.patch.yml under the same row id (`dsh-lark-ctrl`).
+- insert:
+    - id: dsh-lark-ctrl
+      name: 'dsh-lark-ctrl'
+      config:
+        # --- lark-cli ---
+        larkCli: lark-cli
+        identity: bot
+
+        # --- destination ---
+        # Empty targetUserId means "the account lark-cli is logged in as",
+        # resolved from `lark-cli auth status --json` at startup.
+        targetUserId: ''
+        # A group chat takes precedence over the direct message target.
+        targetChatId: ''
+        # Empty allowUsers means "only targetUserId".
+        allowUsers: []
+
+        # --- notifications ---
+        # 0 = silent, 1 = questions/approvals only, 2 = everything
+        defaultPushLevel: 2
+        notifySessionStart: true
+        # Sent only when the agent is truly idle: no active turn, no queued
+        # inbox work, and a short grace period with no new turn.
+        notifySessionEnd: true
+        notifyQuestion: true
+        notifyApproval: true
+        # always | no-live-client | off
+        approvalMode: always
+        includeSubagents: false
+        startupMessage: true
+
+        # --- answering ---
+        # race | fallback | exclusive | off
+        answerMode: race
+        allowTextReply: true
+
+        # --- summaries ---
+        summaryMaxChars: 1500
+        idleGraceMs: 3000
+
+        # --- side questions (soft dependency: dsh-btw) ---
+        # auto | snapshot | off
+        btwMode: auto
+        btwRoute: /api/btw.ask
+        btwTimeoutMs: 60000
+
+        # --- inbound commands ---
+        defaultTarget: last
+        maxPromptChars: 8000
+        maxInboundPerMinute: 30
+
+        # --- misc ---
+        language: zh-CN
+        storeDir: ''
+        debug: false
