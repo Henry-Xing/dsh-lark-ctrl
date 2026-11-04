@@ -29,7 +29,7 @@ Host-only bundle，运行在 DSH Host 进程内；通过 `lark-cli` 的长连接
    - 事件订阅：`im.message.receive_v1`（收手机消息，必需）；
    - 回调配置：`card.action.trigger`（卡片按钮/表单，可选）。
 3. 机器人在目标用户的可用范围内；如果发群，把机器人拉进群。
-4. DSH Web profile（当前验证版本 `0.2.0-rc.2`）。
+4. DSH `>= 0.2.1-rc.5`（插件通过 `engines.dsh` 声明）。
 
 ### 关于卡片回调（重要）
 
@@ -234,7 +234,7 @@ Agent ask_user_question
 7. 不支持 Web 端会话深链（DSH Web 没有 session URL 路由）。
 8. 更新插件 Host 代码后需要重启 DSH；仅重装 bundle 不会刷新 Node 模块缓存。
 9. 单用户/单目标为主，不做多租户映射。
-10. 依赖 DSH `0.2.0-rc.2` 的 Host 服务/事件契约；升级 DSH 需回归。
+10. 依赖 DSH `>= 0.2.1-rc.5` 的 Host 服务/事件契约；升级 DSH 需回归。
 11. 卡片状态回写依赖 bot 的 `im:message:update`；没有该 scope 时退化为 callback token/文字确认。
 
 ## 排障

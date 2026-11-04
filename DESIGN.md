@@ -1,7 +1,7 @@
 # dsh-lark-ctrl 设计稿：用飞书手机端操控 DeepSeek Harness
 
-> 状态：**已实现，当前版本 0.2.6**
-> 目标运行环境：DSH `0.2.0-rc.2` + lark-cli `>=1.0.98`
+> 状态：**已实现，当前版本 0.2.7**
+> 目标运行环境：DSH `>=0.2.1-rc.5` + lark-cli `>=1.0.98`
 > 插件形态：Host-only bundle（无 Client 半），安装后常驻 DSH Host 进程
 > 本文是架构与设计记录；安装和使用以 [README](README.md) 为准。
 
