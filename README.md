@@ -9,7 +9,7 @@ Host-only bundle，运行在 DSH Host 进程内；通过 `lark-cli` 的长连接
 - **会话开始摘要**：每个 run 开始时推送一张卡，含稳定的会话码 `#a1b2c3`、标题、触发本轮的用户输入、cwd、模型。
 - **真正 idle 时发结束摘要**：等 Agent 没有活动 turn、没有排队消息，并经过短暂宽限期后，推送完成卡（耗时、工具调用数、tokens、最后回复、失败原因）。goal 连续轮次会被合并，避免刷屏。
 - **提问卡片**：`ask_user_question` 的选项、多选、自定义文本、多问题批量、plan review 都会渲染成飞书卡片；单选问题是一键按钮，多选/多问题用表单提交。回答以标准 `AskUserQuestionAnswer` 回流，和 Web Client 完全一致。
-- **审批卡片**：`approval/request` 渲染「允许一次 / 拒绝」，返回 `allowed-once` / `rejected`。
+- **审批卡片**：`approval/request` 渲染「允许一次 / 拒绝」，在卡片里用代码框显示具体工具参数/命令；处理后原卡保留工具、原因、命令、决定和处理来源，便于留下痕迹。返回 `allowed-once` / `rejected`。
 - **与 Web 共存**：默认 `race` 模式，飞书和 Web 谁先答谁生效；另一边卡片会被更新为「已回答」。
 - **手机发 prompt**：`#code 继续实现 X`、直接回复任意会话通知、`/steer`、`/stop`、`/status`、`/sessions`。
 - **`/btw` 旁问**：状态快照；已安装 `dsh-btw` 时，自动复用它的 `/api/btw.ask` 做 LLM 旁问（不调用工具、不写入会话）。未安装时只降级为快照，不会报错。

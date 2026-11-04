@@ -8,6 +8,7 @@ function harness() {
   let level = 0
   const listeners = {}
   const cards = []
+  const patches = []
   const links = new Map()
   const disposers = []
 
@@ -35,7 +36,7 @@ function harness() {
   const transport = {
     isAllowed: () => true,
     sendCard: async (card) => { cards.push(card); return { messageId: 'om_question' } },
-    patchCard: async () => {},
+    patchCard: async (messageId, card) => { patches.push({ messageId, card }) },
     sendText: async () => {},
     react: async () => true,
   }
@@ -64,6 +65,7 @@ function harness() {
   return {
     answerer,
     cards,
+    patches,
     listeners,
     dispose() {
       for (const disposer of disposers) disposer()
@@ -105,6 +107,53 @@ test('L0 buffers a question, then promotion publishes it and a Lark answer resol
     const answer = await pending
     assert.deepEqual(answer.answers, [{ id: 'q1', selected: ['继续'] }])
     resolveWeb?.({ answers: [] })
+  } finally {
+    dispose()
+  }
+})
+
+
+test('approval card includes the exact command and retains it after a Lark decision', async () => {
+  const { answerer, cards, patches, listeners, dispose, setLevel } = harness()
+  try {
+    setLevel(1)
+    const session = {
+      id: 'session-1',
+      snapshotEvents: () => [{
+        type: 'tool/call',
+        data: {
+          callId: 'call-1',
+          name: 'bash',
+          arguments: JSON.stringify({
+            command: 'rm -rf /tmp/demo',
+            justification: 'cleanup the test directory',
+          }),
+        },
+      }],
+    }
+    const agent = { id: 'session-1', session }
+    const request = {
+      agent,
+      toolName: 'bash',
+      callId: 'call-1',
+      reason: '需要提升沙箱权限',
+      signal: new AbortController().signal,
+    }
+    const pending = listeners['approval/request'](request, () => new Promise(() => {}))
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    assert.equal(cards.length, 1)
+    assert.match(JSON.stringify(cards[0]), /rm -rf \/tmp\/demo/)
+    assert.match(JSON.stringify(cards[0]), /将要执行的命令/)
+
+    const result = await answerer.answerApproval('session-1:call-1', 'allow', 'ou_me')
+    assert.equal(result.ok, true)
+    assert.equal(await pending, 'allowed-once')
+    assert.ok(patches.length >= 1)
+    const resolved = JSON.stringify(patches.at(-1).card)
+    assert.match(resolved, /已允许/)
+    assert.match(resolved, /rm -rf \/tmp\/demo/)
+    assert.match(resolved, /需要提升沙箱权限/)
+    assert.match(resolved, /处理来源：飞书/)
   } finally {
     dispose()
   }

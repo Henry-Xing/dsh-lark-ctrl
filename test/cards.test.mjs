@@ -5,6 +5,7 @@ import { findHelpTopic } from '../lib/help.js'
 
 import {
   buildApprovalCard,
+  buildApprovalResolvedCard,
   buildEndCard,
   buildCreateSessionCard,
   buildCreateWorkspaceCard,
@@ -408,4 +409,36 @@ test('status card displays mode/model/thinking/permission and edits them', () =>
   const form = card.body.elements.find((element) => element.tag === 'form')
   assert.ok(form)
   assert.deepEqual(form.elements.map((item) => item.name), ['permission', 'model', 'effort', 'config_submit'])
+})
+
+test('approval card shows the concrete command in a code block', () => {
+  const card = buildApprovalCard({
+    code: 'k3f9zq',
+    toolName: 'bash',
+    reason: '需要提升沙箱权限',
+    approvalKey: 'a1',
+    detail: { language: 'bash', text: 'rm -rf /tmp/demo && echo done' },
+  })
+  const serialized = JSON.stringify(card)
+  assert.match(serialized, /将要执行的命令/)
+  assert.match(serialized, /rm -rf \/tmp\/demo/)
+  assert.match(serialized, /```bash/)
+})
+
+test('resolved approval card keeps command, reason and decision for audit', () => {
+  const card = buildApprovalResolvedCard({
+    code: 'k3f9zq',
+    outcome: 'allowed-once',
+    toolName: 'bash',
+    reason: '需要提升沙箱权限',
+    detail: { language: 'bash', text: 'rm -rf /tmp/demo' },
+    source: 'lark',
+    decidedAt: 1700000000000,
+  })
+  const serialized = JSON.stringify(card)
+  assert.match(serialized, /已允许/)
+  assert.match(serialized, /rm -rf \/tmp\/demo/)
+  assert.match(serialized, /需要提升沙箱权限/)
+  assert.match(serialized, /处理来源：飞书/)
+  assert.match(serialized, /处理时间/)
 })
