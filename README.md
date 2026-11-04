@@ -207,7 +207,7 @@ Agent ask_user_question
   - Thinking effort：来自所选模型的 `reasoning.efforts`；
   - 权限：来自 `permissionPresets.catalog()`；
   - prompt：首条消息，创建后立即发送（上限 1000 字）。
-- `/status` 状态卡显示模式、模型、Thinking effort、权限，并带修改选择框：
+- `/status` 状态卡显示模式、模型、Thinking effort、权限，并带修改选择框；点「打开会话」进入 prompt 表单（复用会话详情卡）：
   - 权限修改立即生效；
   - 模型/Thinking effort 在下一轮请求生效；
   - 模式在首轮后锁定，只展示不可改。

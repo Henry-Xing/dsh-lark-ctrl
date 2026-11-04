@@ -406,6 +406,8 @@ test('status card displays mode/model/thinking/permission and edits them', () =>
   assert.match(serialized, /High/)
   assert.match(serialized, /权限/)
   assert.match(serialized, /Safe/)
+  assert.match(serialized, /打开会话/)
+  assert.match(serialized, /session_open/)
   const form = card.body.elements.find((element) => element.tag === 'form')
   assert.ok(form)
   assert.deepEqual(form.elements.map((item) => item.name), ['permission', 'model', 'effort', 'config_submit'])
