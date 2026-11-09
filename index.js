@@ -151,7 +151,7 @@ export function apply(ctx, rawConfig) {
       '**dsh-lark-ctrl 已上线**',
       `- 推送目标：${target.targetChatId || target.targetUserId}${target.userName ? `（${target.userName}）` : ''}`,
       `- lark-cli：${truncate(status.version || 'unknown', 80)}`,
-      `- 插件版本：\`0.3.1\``,
+      `- 插件版本：\`0.3.2\``,
       `- 推送级别：\`L${store.pushLevel()}\``,
       `- 答题模式：\`${config.answerMode}\``,
       `- 审批：\`${config.approvalMode}\``,
