@@ -88,3 +88,25 @@ test('summarizeRun strips images before truncation and flags them', () => {
   assert.doesNotMatch(summary.assistantText, /!\[/)
   assert.match(summary.userText, /帮我看图/)
 })
+
+
+test('summarizeRun marks a truncated answer for archive', () => {
+  const summary = summarizeRun({
+    session: { header: {}, snapshotEvents: () => [] },
+    title: '长回答',
+    run: {
+      startedAt: 1000,
+      userText: '问题',
+      assistantText: '长'.repeat(200),
+      toolCalls: 0,
+      toolNames: [],
+      usage: { inputTokens: 0, outputTokens: 0 },
+      reason: { kind: 'completed' },
+      model: 'm',
+    },
+    maxChars: 100,
+    now: 2000,
+  })
+  assert.equal(summary.truncated, true)
+  assert.equal(summary.assistantText.length, 100)
+})
