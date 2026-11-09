@@ -5,6 +5,9 @@ import { findHelpTopic } from '../lib/help.js'
 
 import {
   buildApprovalCard,
+  buildArchiveDeletePreviewCard,
+  buildArchiveResultCard,
+  buildArchiveStatusCard,
   buildApprovalResolvedCard,
   buildEndCard,
   buildCreateSessionCard,
@@ -443,4 +446,57 @@ test('resolved approval card keeps command, reason and decision for audit', () =
   assert.match(serialized, /需要提升沙箱权限/)
   assert.match(serialized, /处理来源：飞书/)
   assert.match(serialized, /处理时间/)
+})
+
+test('archive status and delete preview expose the configured parent and confirmation actions', () => {
+  const status = buildArchiveStatusCard({
+    configured: true,
+    parentUrl: 'https://example.feishu.cn/wiki/archive',
+    parentTitle: '回答归档',
+  })
+  const statusText = JSON.stringify(status)
+  assert.match(statusText, /回答归档/)
+  assert.match(statusText, /open_url/)
+  assert.match(statusText, /\/wiki\/archive/)
+
+  const preview = buildArchiveDeletePreviewCard({
+    cutoff: '2026-11-01',
+    count: 2,
+    dates: ['2026-10-30', '2026-10-31'],
+    key: 'delete-key',
+  })
+  const previewText = JSON.stringify(preview)
+  assert.match(previewText, /确认删除归档回答/)
+  assert.match(previewText, /archive_delete_confirm/)
+  assert.match(previewText, /archive_delete_cancel/)
+  assert.match(previewText, /2026-10-30/)
+})
+
+test('long end card offers archive action with the turn marker', () => {
+  const card = buildEndCard({
+    code: 'abcxyz',
+    title: '会话',
+    summary: '很长的回答',
+    reasonText: '已完成',
+    failed: false,
+    durationText: '1 秒',
+    toolCalls: 0,
+    usage: { inputTokens: 1, outputTokens: 2 },
+    sessionId: 's1',
+    turn: 3,
+    archiveable: true,
+  })
+  const serialized = JSON.stringify(card)
+  assert.match(serialized, /archive_answer/)
+  assert.match(serialized, /"turn":3/)
+})
+
+test('archive result card opens the created document', () => {
+  const card = buildArchiveResultCard({
+    url: 'https://example.feishu.cn/docx/child',
+    parentUrl: 'https://example.feishu.cn/wiki/archive',
+    parentTitle: '回答归档',
+  })
+  assert.match(JSON.stringify(card), /回答已归档/)
+  assert.match(JSON.stringify(card), /open_url/)
 })

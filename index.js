@@ -9,6 +9,7 @@
 
 import { buildNoticeCard, fitCard } from './lib/cards.js'
 import { createAnswerer } from './lib/answerer.js'
+import { createArchive } from './lib/archive.js'
 import { createBtw } from './lib/btw.js'
 import { normalizeConfig } from './lib/config.js'
 import { createEventBridge } from './lib/event-bridge.js'
@@ -48,7 +49,8 @@ export function apply(ctx, rawConfig) {
   const notifier = createNotifier({ ctx, config, registry, transport, store, logger })
   const answerer = createAnswerer({ ctx, config, registry, transport, store, logger })
   const btw = createBtw({ ctx, config, registry, logger })
-  const router = createRouter({ ctx, config, registry, transport, answerer, btw, store, logger })
+  const archive = createArchive({ ctx, config, cli, registry, logger })
+  const router = createRouter({ ctx, config, registry, transport, answerer, btw, archive, store, logger })
 
   let disposed = false
   let registered = false
@@ -149,7 +151,7 @@ export function apply(ctx, rawConfig) {
       '**dsh-lark-ctrl 已上线**',
       `- 推送目标：${target.targetChatId || target.targetUserId}${target.userName ? `（${target.userName}）` : ''}`,
       `- lark-cli：${truncate(status.version || 'unknown', 80)}`,
-      `- 插件版本：\`0.2.9\``,
+      `- 插件版本：\`0.3.0\``,
       `- 推送级别：\`L${store.pushLevel()}\``,
       `- 答题模式：\`${config.answerMode}\``,
       `- 审批：\`${config.approvalMode}\``,

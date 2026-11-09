@@ -120,6 +120,27 @@ function harness() {
     registry,
     transport,
     answerer,
+    archive: {
+      status: async () => ({
+        configured: true,
+        parentUrl: 'https://example.feishu.cn/wiki/archive',
+        parentTitle: '回答归档',
+        error: undefined,
+      }),
+      planDelete: async () => ({
+        count: 2,
+        dates: ['2026-10-30', '2026-10-31'],
+        entries: [],
+      }),
+      deleteBefore: async () => ({ cutoff: '2026-11-01', deleted: 2, failed: [], total: 2 }),
+      archiveAnswer: async () => ({
+        url: 'https://example.feishu.cn/docx/child',
+        parentUrl: 'https://example.feishu.cn/wiki/archive',
+        parentTitle: '回答归档',
+        indexed: true,
+      }),
+      validateCutoff: (value) => (/^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? String(value) : undefined),
+    },
     btw: {
       snapshot: async () => ({
         code: 'abcxyz',
@@ -400,4 +421,32 @@ test('/status displays current configuration and applies the status form', async
   assert.ok(configCalls.some((call) => call[0] === 'permission'))
   assert.ok(configCalls.some((call) => call[0] === 'model' && call[1].reasoningEffort === 'high'))
   assert.ok(cards.some((card) => card.header?.title?.content === '会话状态 · #abcxyz'))
+})
+
+
+test('/archive shows the configured archive and delete preview', async () => {
+  const { router, cards } = harness()
+  await router.handleMessage({
+    sender_type: 'user',
+    sender_id: 'ou_me',
+    chat_id: 'oc',
+    chat_type: 'p2p',
+    message_id: 'om_archive',
+    message_type: 'text',
+    content: '/archive',
+  })
+  assert.ok(cards.some((card) => card.header?.title?.content === '回答归档'))
+
+  await router.handleMessage({
+    sender_type: 'user',
+    sender_id: 'ou_me',
+    chat_id: 'oc',
+    chat_type: 'p2p',
+    message_id: 'om_archive_delete',
+    message_type: 'text',
+    content: '/archive delete-before 2026-11-01',
+  })
+  const preview = cards.find((card) => card.header?.title?.content === '确认删除归档回答')
+  assert.ok(preview)
+  assert.match(JSON.stringify(preview), /archive_delete_confirm/)
 })

@@ -16,6 +16,7 @@ Host-only bundle，运行在 DSH Host 进程内；通过 `lark-cli` 的长连接
 - **推送级别**：`/level` 或 `/level 0|1|2`；L0 静默、L1 只推提问/审批、L2 全部；切回 L1/L2 时会补发 Web 尚未处理的提问/审批。
 - **工作区**：`/workspaces [1h|1d]` 按工作区分组；每个会话可打开、每个工作区可新建会话；可新建工作区（绝对路径，自动 `mkdir -p`）。
 - **新建会话卡片**：选择 Agent 模式、模型、Thinking effort、权限，并附上首条 prompt。
+- **长回答归档**：回答超过卡片摘要长度时，完成卡出现「归档完整回答到飞书文档」按钮；完整回答写入配置的 Wiki 父文档下的子文档，并按日期 / `#code` 在父文档中建立索引。
 - **文字回复降级**：即使飞书卡片回调没开通，也能直接回复提问卡/审批卡完成回答。
 
 ## 前置条件
@@ -95,6 +96,10 @@ CLI 只负责把依赖加入 profile；随后在 DSH 的 **Plugins** 页面启�
     btwRoute: /api/btw.ask
     btwTimeoutMs: 60000
 
+    # 长回答归档的 Wiki 父文档；空 = 关闭归档按钮
+    # 必须是 docx 类型的 Wiki 节点，例如 https://your-tenant.feishu.cn/wiki/<node_token>
+    archiveParentUrl: ''
+
     defaultTarget: last     # last | require-hash
     maxPromptChars: 8000
     maxInboundPerMinute: 30
@@ -137,6 +142,8 @@ CLI 只负责把依赖加入 profile；随后在 DSH 的 **Plugins** 页面启�
 | `/btw [code] [问题]` | 旁问；省略 code 用最近/被回复会话 |
 | `/stop [code]` | 取消当前轮次 |
 | `/help [命令]` | 命令总览；`/help /sessions` 查看该命令的详细用法、示例、限制和相关命令 |
+| `/archive` | 查看长回答归档父文档配置和状态 |
+| `/archive delete-before YYYY-MM-DD` | 预览并确认删除该日期之前的归档回答子文档和索引链接 |
 | 直接回复任意会话通知 | 内容作为该会话的 prompt |
 | 直接回复提问卡/审批卡 | 文字答题（无回调权限时） |
 
@@ -223,6 +230,26 @@ Agent ask_user_question
 - Web 页面当时没打开也没关系：再次打开会从 Host 读取 workspace baseline 和 session 列表，状态是持久的。
 - 如果 Web 页面已打开但没看到，先刷新页面；仍看不到时检查 Host 日志中 `workspace-controller` / `api-session/added` 是否有错误。
 
+## 长回答归档
+
+在 profile 配置里设置 `archiveParentUrl`（docx 类型的 Wiki 节点 URL）后，回答被卡片截断时，完成卡会显示「归档完整回答到飞书文档」。
+
+- 归档时创建父文档下的子文档，完整回答写入子文档；
+- 父文档结构固定为：
+
+  ```text
+  # 2026-11-09
+  ## #abc123
+  [dsh-lark] 14:30 · 会话标题
+  ```
+
+- 每次归档/删除都重新读取父文档最新 XML 和 revision，不在本地保存归档结构；
+- 多个 DSH 同时写入时通过 revision 冲突重试收敛；
+- `/archive delete-before 2026-11-01` 会先扫描并显示确认卡，只删除带 `[dsh-lark]` 标记的索引链接及其子文档，不删除用户手动添加的内容；
+- 删除/编辑失败会保留未完成项并在结果卡中列出。
+
+> 归档父文档必须是 docx，且当前登录的飞书用户需要 Wiki/文档读写权限。回答中的图片会转为链接保留，避免文档导入依赖外部图片下载。父文档结构被用户大幅改写时，插件只会按日期标题和 `#code` 标题寻找插入点；找不到时会在末尾追加。
+
 ## 已知限制
 
 1. `race` 模式飞书先答时，插件会 abort 转发给 Web 的请求并触发客户端卡片清理，Web 提问面板会随之关闭；极端网络/旧版客户端下仍可能短暂残留，刷新页面即消失。
@@ -268,4 +295,5 @@ MIT. See [LICENSE](LICENSE).
 - 仓库不包含真实飞书 token、app secret、open_id/chat_id 或本机绝对路径；测试中的 `ou_me`、`om_*` 等均为合成值。
 - `lark-cli` 的登录凭据由 `lark-cli` 自己保存；dsh-lark-ctrl 不读取、不写入这些凭据。
 - 插件运行状态（session code/link、推送级别）保存在 `$DSH_HOME/storages/lark/state.json`，属于本机运行数据，不应提交到仓库。
+- 归档结构不保存在本地：只配置父文档 URL，每次操作重新解析飞书文档。
 - 推送目标默认是 `lark-cli` 当前登录账号；如需群聊/指定用户，在 profile 配置里填写。

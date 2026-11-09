@@ -48,6 +48,11 @@
         btwRoute: /api/btw.ask
         btwTimeoutMs: 60000
 
+        # --- long-answer archive ---
+        # Wiki node URL of the archive document. Empty disables the archive
+        # button. Example: https://your-tenant.feishu.cn/wiki/<node_token>
+        archiveParentUrl: ''
+
         # --- inbound commands ---
         defaultTarget: last
         maxPromptChars: 8000
