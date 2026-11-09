@@ -170,3 +170,41 @@ test('archiveAnswer creates a docx and inserts a marked link into the parent', a
   assert.match(updates[0].join(' '), /\[dsh-lark\]/)
   assert.match(updates[0].join(' '), /child-doc/)
 })
+
+test('Lark-side archive URL override takes precedence and can be cleared', async () => {
+  let saved = ''
+  const cli = {
+    async run(args) {
+      if (args[0] === 'wiki' && args[1] === '+node-get') {
+        return { json: { data: {
+          node_token: 'node',
+          obj_token: 'obj',
+          obj_type: 'docx',
+          title: '归档',
+          space_id: 'space',
+        } } }
+      }
+      throw new Error(`unexpected cli: ${args.join(' ')}`)
+    },
+  }
+  const store = {
+    archiveParentUrl: () => saved,
+    setArchiveParentUrl: (url) => { saved = url },
+  }
+  const archive = createArchive({
+    ctx: {},
+    config: normalizeConfig({}),
+    cli,
+    registry: {},
+    store,
+    logger: { info: () => {}, warn: () => {}, debug: () => {} },
+  })
+  assert.equal((await archive.status()).configured, false)
+  const parent = await archive.setParentUrl('https://example.feishu.cn/wiki/archive')
+  assert.equal(parent.title, '归档')
+  const status = await archive.status()
+  assert.equal(status.configured, true)
+  assert.equal(status.source, 'lark')
+  archive.clearParentUrl()
+  assert.equal((await archive.status()).configured, false)
+})

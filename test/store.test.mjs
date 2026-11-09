@@ -63,3 +63,22 @@ test('creation links keep workspace and idempotency fields across reload', async
     await rm(root, { recursive: true, force: true })
   }
 })
+
+
+test('archive parent URL override persists across reload', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-lark-store-'))
+  try {
+    const config = normalizeConfig({ storeDir: root })
+    const store = createStore(config, logger)
+    await store.load()
+    store.setArchiveParentUrl('https://example.feishu.cn/wiki/archive')
+    await store.flush()
+
+    const next = createStore(config, logger)
+    await next.load()
+    assert.equal(next.archiveParentUrl(), 'https://example.feishu.cn/wiki/archive')
+    await next.dispose()
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})

@@ -126,7 +126,14 @@ function harness() {
         parentUrl: 'https://example.feishu.cn/wiki/archive',
         parentTitle: '回答归档',
         error: undefined,
+        source: 'lark',
       }),
+      setParentUrl: async (url) => ({
+        url,
+        title: '回答归档',
+        nodeToken: 'node',
+      }),
+      clearParentUrl: () => {},
       planDelete: async () => ({
         count: 2,
         dates: ['2026-10-30', '2026-10-31'],
@@ -449,4 +456,30 @@ test('/archive shows the configured archive and delete preview', async () => {
   const preview = cards.find((card) => card.header?.title?.content === '确认删除归档回答')
   assert.ok(preview)
   assert.match(JSON.stringify(preview), /archive_delete_confirm/)
+})
+
+
+test('/archive set saves the parent URL and /archive clear is available', async () => {
+  const { router, texts } = harness()
+  await router.handleMessage({
+    sender_type: 'user',
+    sender_id: 'ou_me',
+    chat_id: 'oc',
+    chat_type: 'p2p',
+    message_id: 'om_archive_set',
+    message_type: 'text',
+    content: '/archive set https://example.feishu.cn/wiki/archive',
+  })
+  assert.ok(texts.some((text) => /归档父文档已保存/.test(text)))
+
+  await router.handleMessage({
+    sender_type: 'user',
+    sender_id: 'ou_me',
+    chat_id: 'oc',
+    chat_type: 'p2p',
+    message_id: 'om_archive_clear',
+    message_type: 'text',
+    content: '/archive clear',
+  })
+  assert.ok(texts.some((text) => /清除/.test(text)) === false)
 })

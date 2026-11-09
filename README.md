@@ -96,7 +96,7 @@ CLI 只负责把依赖加入 profile；随后在 DSH 的 **Plugins** 页面启�
     btwRoute: /api/btw.ask
     btwTimeoutMs: 60000
 
-    # 长回答归档的 Wiki 父文档；空 = 关闭归档按钮
+    # 长回答归档的 Wiki 父文档；空 = 关闭归档按钮（也可用 /archive 卡片或 /archive set 配置）
     # 必须是 docx 类型的 Wiki 节点，例如 https://your-tenant.feishu.cn/wiki/<node_token>
     archiveParentUrl: ''
 
@@ -232,7 +232,13 @@ Agent ask_user_question
 
 ## 长回答归档
 
-在 profile 配置里设置 `archiveParentUrl`（docx 类型的 Wiki 节点 URL）后，回答被卡片截断时，完成卡会显示「归档完整回答到飞书文档」。
+配置归档父文档（docx 类型的 Wiki 节点 URL）有三种方式：
+
+1. 发送 `/archive`，在卡片中粘贴 URL 并点「保存归档文档」；
+2. 发送 `/archive set <url>`；
+3. 在 profile 的 `dsh-lark-ctrl` 配置里设置 `archiveParentUrl` 作为回退。
+
+配置后，回答被卡片截断时，完成卡会显示「归档完整回答到飞书文档」。发送 `/archive clear` 可以清除飞书侧配置并回退到 profile 配置。
 
 - 归档时创建父文档下的子文档，完整回答写入子文档；
 - 父文档结构固定为：

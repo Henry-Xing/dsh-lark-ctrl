@@ -49,7 +49,7 @@ export function apply(ctx, rawConfig) {
   const notifier = createNotifier({ ctx, config, registry, transport, store, logger })
   const answerer = createAnswerer({ ctx, config, registry, transport, store, logger })
   const btw = createBtw({ ctx, config, registry, logger })
-  const archive = createArchive({ ctx, config, cli, registry, logger })
+  const archive = createArchive({ ctx, config, cli, registry, store, logger })
   const router = createRouter({ ctx, config, registry, transport, answerer, btw, archive, store, logger })
 
   let disposed = false
@@ -151,7 +151,7 @@ export function apply(ctx, rawConfig) {
       '**dsh-lark-ctrl 已上线**',
       `- 推送目标：${target.targetChatId || target.targetUserId}${target.userName ? `（${target.userName}）` : ''}`,
       `- lark-cli：${truncate(status.version || 'unknown', 80)}`,
-      `- 插件版本：\`0.3.0\``,
+      `- 插件版本：\`0.3.1\``,
       `- 推送级别：\`L${store.pushLevel()}\``,
       `- 答题模式：\`${config.answerMode}\``,
       `- 审批：\`${config.approvalMode}\``,

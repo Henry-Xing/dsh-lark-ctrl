@@ -457,6 +457,8 @@ test('archive status and delete preview expose the configured parent and confirm
   const statusText = JSON.stringify(status)
   assert.match(statusText, /回答归档/)
   assert.match(statusText, /open_url/)
+  assert.match(statusText, /archive_form/)
+  assert.match(statusText, /archive_url/)
   assert.match(statusText, /\/wiki\/archive/)
 
   const preview = buildArchiveDeletePreviewCard({
