@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { createNotifier } from '../lib/notifier.js'
+import { createNotifier, isArchiveConfigured } from '../lib/notifier.js'
 import { normalizeConfig } from '../lib/config.js'
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -64,4 +64,11 @@ test('start card is patched when the prompt and title arrive after the initial s
   assert.match(latest, /实现功能/)
   assert.match(latest, /真实标题/)
   dispose()
+})
+
+
+test('archive button config sees both profile and Lark-stored URLs', () => {
+  assert.equal(isArchiveConfigured({ archiveParentUrl: '' }, { archiveParentUrl: () => 'https://example.feishu.cn/wiki/archive' }), true)
+  assert.equal(isArchiveConfigured({ archiveParentUrl: 'https://example.feishu.cn/wiki/archive' }, undefined), true)
+  assert.equal(isArchiveConfigured({ archiveParentUrl: '' }, { archiveParentUrl: () => '' }), false)
 })

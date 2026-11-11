@@ -17,11 +17,11 @@ const xml = [
   '<title id="t">dsh-lark回答</title>',
   '<h1 id="h1a">2026-11-08</h1>',
   '<h2 id="h2a">#abc234</h2>',
-  '<p id="p1"><a href="https://example.feishu.cn/docx/a">[dsh-lark] 10:00 · 旧回答</a></p>',
+  '<p id="p1"><a href="https://example.feishu.cn/docx/a">[dsh-lark] 2026-11-08T02:00:00Z · 旧回答</a></p>',
   '<h2 id="h2b">#def567</h2>',
   '<h1 id="h1b">2026-11-09</h1>',
   '<h2 id="h2c">#ghi789</h2>',
-  '<p id="p2"><a href="https://example.feishu.cn/docx/b">[dsh-lark] 11:00 · 新回答</a></p>',
+  '<p id="p2"><a href="https://example.feishu.cn/docx/b">[dsh-lark] 2026-11-09T03:00:00Z · 新回答</a></p>',
 ].join('')
 
 test('parses the date/code/link structure', () => {
@@ -32,7 +32,8 @@ test('parses the date/code/link structure', () => {
     code: '#abc234',
     blockId: 'p1',
     url: 'https://example.feishu.cn/docx/a',
-    text: '[dsh-lark] 10:00 · 旧回答',
+    text: '[dsh-lark] 2026-11-08T02:00:00Z · 旧回答',
+    timestamp: '2026-11-08T02:00:00Z',
   })
   assert.deepEqual(doc.entries.map((entry) => entry.date), ['2026-11-08', '2026-11-09'])
 })
@@ -207,4 +208,49 @@ test('Lark-side archive URL override takes precedence and can be cleared', async
   assert.equal(status.source, 'lark')
   archive.clearParentUrl()
   assert.equal((await archive.status()).configured, false)
+})
+
+test('archiveAnswer returns the existing link instead of inserting the same answer twice', async () => {
+  const at = new Date('2026-11-11T13:44:45Z')
+  let creates = 0
+  let updates = 0
+  const cli = {
+    async run(args) {
+      if (args[0] === 'wiki' && args[1] === '+node-get') {
+        return { json: { data: {
+          node_token: 'parent-node',
+          obj_token: 'parent-obj',
+          obj_type: 'docx',
+          title: '归档',
+          space_id: 'space',
+        } } }
+      }
+      if (args[0] === 'docs' && args[1] === '+fetch') {
+        return { json: { data: { document: {
+          revision_id: 1,
+          content: '<title id="t">归档</title><h1 id="d">2026-11-11</h1><h2 id="c">#abc234</h2><p id="p"><a href="https://example.feishu.cn/docx/existing">[dsh-lark] 2026-11-11T13:44:45Z · 已回答</a></p>',
+        } } } }
+      }
+      if (args[0] === 'docs' && args[1] === '+create') { creates += 1; throw new Error('must not create') }
+      if (args[0] === 'docs' && args[1] === '+update') { updates += 1; throw new Error('must not update') }
+      throw new Error(`unexpected cli: ${args.join(' ')}`)
+    },
+  }
+  const session = {
+    snapshotEvents: () => [
+      { type: 'assistant/message', time: at.getTime(), data: { turn: 1, message: { content: [{ type: 'text', text: '已回答' }] } } },
+    ],
+  }
+  const archive = createArchive({
+    ctx: { sessions: { get: () => session } },
+    config: normalizeConfig({ archiveParentUrl: 'https://example.feishu.cn/wiki/parent-node' }),
+    cli,
+    registry: { ensureCode: () => 'abc234', label: async () => '回答' },
+    logger: { info: () => {}, warn: () => {}, debug: () => {} },
+  })
+  const result = await archive.archiveAnswer({ sessionId: 's1' })
+  assert.equal(result.alreadyArchived, true)
+  assert.equal(result.url, 'https://example.feishu.cn/docx/existing')
+  assert.equal(creates, 0)
+  assert.equal(updates, 0)
 })

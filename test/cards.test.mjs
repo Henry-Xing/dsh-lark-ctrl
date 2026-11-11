@@ -396,6 +396,7 @@ test('status card displays mode/model/thinking/permission and edits them', () =>
     effortLabel: 'High',
     permission: 'safe',
     permissionLabel: 'Safe',
+    archiveAvailable: true,
     options: {
       models: [{ value: 'p::m', text: 'P · M' }],
       efforts: [{ value: '', text: '默认（模型决定）' }, { value: 'high', text: 'High' }],
@@ -411,6 +412,8 @@ test('status card displays mode/model/thinking/permission and edits them', () =>
   assert.match(serialized, /Safe/)
   assert.match(serialized, /打开会话/)
   assert.match(serialized, /session_open/)
+  assert.match(serialized, /archive_latest/)
+  assert.match(serialized, /归档最近回答/)
   const form = card.body.elements.find((element) => element.tag === 'form')
   assert.ok(form)
   assert.deepEqual(form.elements.map((item) => item.name), ['permission', 'model', 'effort', 'config_submit'])

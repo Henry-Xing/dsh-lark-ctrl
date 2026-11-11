@@ -134,6 +134,7 @@ function harness() {
         nodeToken: 'node',
       }),
       clearParentUrl: () => {},
+      configured: () => true,
       planDelete: async () => ({
         count: 2,
         dates: ['2026-10-30', '2026-10-31'],
@@ -145,6 +146,7 @@ function harness() {
         parentUrl: 'https://example.feishu.cn/wiki/archive',
         parentTitle: '回答归档',
         indexed: true,
+        alreadyArchived: true,
       }),
       validateCutoff: (value) => (/^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? String(value) : undefined),
     },
@@ -415,6 +417,7 @@ test('/status displays current configuration and applies the status form', async
   assert.match(serialized, /High/)
   assert.match(serialized, /Safe/)
   assert.match(serialized, /session_config_form/)
+  assert.match(serialized, /archive_latest/)
 
   setLink({ sessionId: 's1', kind: 'status' })
   await router.handleCardAction({
@@ -482,4 +485,18 @@ test('/archive set saves the parent URL and /archive clear is available', async 
     content: '/archive clear',
   })
   assert.ok(texts.some((text) => /清除/.test(text)) === false)
+})
+
+test('status archive-latest action returns the existing archive link', async () => {
+  const { router, cards } = harness()
+  await router.handleCardAction({
+    event_id: 'e_archive_latest',
+    action_tag: 'button',
+    action_value: JSON.stringify({ op: 'archive_latest', sessionId: 's1' }),
+    message_id: 'om_status',
+    operator_id: 'ou_me',
+  })
+  const result = cards.find((card) => card.header?.title?.content === '回答已归档过')
+  assert.ok(result)
+  assert.match(JSON.stringify(result), /example\.feishu\.cn\/docx\/child/)
 })
