@@ -107,7 +107,34 @@ CLI 只负责把依赖加入 profile；随后在 DSH 的 **Plugins** 页面启�
     language: zh-CN
     storeDir: ''
     debug: false
+
+    # 卡片上的「工作区行」：把远端工作区的本地镜像路径映射成 <host> <remotePath>
+    # 默认读 <DSH_HOME>/workspace-map.json（DSH_HOME 或 ~/.dsh）；这里可改路径或内联
+    workspaceMapPath: ''
+    workspaceMap: {}
 ```
+
+### 工作区行
+
+开始卡与结束卡都会渲染一行 `🖥 …`，让手机上能看出这一轮跑在哪台机器的哪个目录：
+
+| `session.header.cwd` | 渲染 |
+|---|---|
+| `<dshHome>/remote-workspaces/<id>` 且映射命中 | `🖥 10.40.0.7 /develop03/user/proj` |
+| 同一镜像路径但映射缺失 | `🖥 <id>`（只退化，不隐藏） |
+| 本地目录 | `🖥 C:\work\proj` |
+
+远端工作区会话的 `header.cwd` 是**本地镜像路径**，只有 `<id>`；把它翻成真实服务器与路径的数据来自一份可选 JSON：
+
+```json
+{
+  "workspaces": {
+    "<mirrorId>": { "host": "10.40.0.7", "remotePath": "/develop03/user/proj" }
+  }
+}
+```
+
+读取顺序：`workspaceMap`（内联，优先） → `workspaceMapPath` → `<DSH_HOME>/workspace-map.json`。文件按 mtime 缓存，改完即生效，不需要重启 Host。
 
 ### `answerMode`
 
