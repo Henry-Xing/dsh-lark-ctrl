@@ -261,7 +261,7 @@ test('session detail card has prompt form, hash block and actions', () => {
   const form = card.body.elements.find((element) => element.tag === 'form')
   assert.equal(form.name, 'session_form')
   assert.ok(form.elements.some((element) => element.name === 'prompt'))
-  assert.ok(form.elements.some((element) => element.name === 'session_btw'))
+  assert.ok(!form.elements.some((element) => element.name === 'session_btw'))
   const ops = []
   const walk = (value) => {
     if (Array.isArray(value)) { for (const item of value) walk(item); return }
@@ -271,7 +271,7 @@ test('session detail card has prompt form, hash block and actions', () => {
     }
   }
   walk(card)
-  assert.ok(ops.includes('session_copy'))
+  assert.ok(ops.includes('sessions'))
   assert.ok(ops.includes('status'))
 })
 
@@ -339,7 +339,7 @@ test('session detail form has separate send and btw submit buttons', () => {
   })
   const form = card.body.elements.find((element) => element.tag === 'form')
   const buttons = form.elements.filter((element) => element.tag === 'button')
-  assert.deepEqual(buttons.map((item) => item.name), ['session_send', 'session_btw'])
+  assert.deepEqual(buttons.map((item) => item.name), ['session_send'])
   assert.ok(buttons.every((item) => item.form_action_type === 'submit'))
 })
 
