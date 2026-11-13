@@ -133,7 +133,10 @@ test('notification cards carry the session code and stable structure', () => {
     sessionId: 'session-1',
   })
   assert.equal(start.schema, '2.0')
-  assert.match(start.header.title.content, /k3f9zq/)
+  // The header carries what a human recognises (the title); the session code is
+  // demoted to the footer meta line but stays inside the card for quoting.
+  assert.match(start.header.title.content, /清理/)
+  assert.match(JSON.stringify(start), /k3f9zq/)
 
   const end = buildEndCard({
     code: 'k3f9zq',
@@ -149,6 +152,8 @@ test('notification cards carry the session code and stable structure', () => {
     sessionId: 'session-1',
   })
   assert.equal(end.header.template, 'green')
+  assert.match(end.header.title.content, /清理/)
+  assert.match(JSON.stringify(end), /k3f9zq/)
   assert.ok(end.body.elements.some((element) => element.tag === 'form'))
 
   const approval = buildApprovalCard({
@@ -359,7 +364,7 @@ test('end card strips images and explains why the summary is shorter', () => {
   const serialized = JSON.stringify(card)
   assert.doesNotMatch(serialized, /!\[/)
   assert.match(serialized, /图片已省略/)
-  assert.match(serialized, /图片已从飞书卡片摘要中省略/)
+  assert.match(serialized, /（图片已省略）/)
 })
 
 test('help topic card contains usage, examples, notes and related actions', () => {
