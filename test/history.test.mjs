@@ -69,3 +69,20 @@ test('the history card gives every row an index-addressed button', () => {
     .filter((element) => element.behaviors?.[0]?.value?.op === 'history_item')
   assert.deepEqual(buttons.map((element) => element.behaviors[0].value.index), [0, 1])
 })
+
+test('the history card shows 16 rows and folds the rest, newest first', () => {
+  const rows = Array.from({ length: 32 }, (_, index) => ({
+    role: index % 2 === 0 ? 'user' : 'assistant',
+    text: `第 ${index} 条`,
+    at: 1000 - index,
+  }))
+  const card = buildHistoryCard({ code: 'k3f9zq', sessionId: 'session-1', rows })
+  const visible = card.body.elements.filter((element) => element.tag === 'column_set')
+  assert.equal(visible.length, 16)
+  const panel = card.body.elements.find((element) => element.tag === 'collapsible_panel')
+  assert.ok(panel !== undefined)
+  assert.match(panel.header.title.content, /更早的 16 条/)
+  assert.equal(panel.elements.length, 16)
+  const indexes = [...JSON.stringify(card).matchAll(/"index":(\d+)/g)].map((match) => Number(match[1]))
+  assert.deepEqual(indexes, Array.from({ length: 32 }, (_, index) => index))
+})
