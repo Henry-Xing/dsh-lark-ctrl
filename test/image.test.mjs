@@ -8,7 +8,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { imageExtensionOf, parseImageKey, sniffImageMediaType } from '../lib/image.js'
+import { imageExtensionOf, parseImageKey, parseRichContent, sniffImageMediaType } from '../lib/image.js'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0])
 const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -43,4 +43,21 @@ test('parseImageKey reads the key out of a raw message body', () => {
   assert.equal(parseImageKey('not json'), undefined)
   assert.equal(parseImageKey(''), undefined)
   assert.equal(parseImageKey(undefined), undefined)
+})
+
+test('parseRichContent reads text and images out of a post message', () => {
+  const post = JSON.stringify({
+    title: '',
+    content: [[
+      { tag: 'text', text: '看这个截图：' },
+      { tag: 'img', image_key: 'img_v3_one' },
+    ], [
+      { tag: 'text', text: '第二段' },
+      { tag: 'img', image_key: 'img_v3_two' },
+    ]],
+  })
+  assert.deepEqual(parseRichContent(post), { text: '看这个截图：\n第二段', imageKeys: ['img_v3_one', 'img_v3_two'] })
+  assert.deepEqual(parseRichContent('{"image_key":"img_v3_x"}'), { text: '', imageKeys: ['img_v3_x'] })
+  assert.equal(parseRichContent('not json'), undefined)
+  assert.equal(parseRichContent(undefined), undefined)
 })
