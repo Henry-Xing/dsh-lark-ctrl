@@ -217,6 +217,26 @@ npm test
 - `test/`：`node:test` 单元测试（不访问真实飞书）。
 - `DESIGN.md` / `DESIGN-V2.md`：架构与二期设计记录。
 
+### 发版流程（先合入，再发布）
+
+**硬性顺序：先让 `main` 合入，再打 tag 发布。** 不要「先 publish、后合 PR」——
+发出去的版本号收不回来，且一旦上游 `main` 在发布后继续前进，npm 上的 tarball 就会缺上游修复。
+
+1. **对齐 main**：`git fetch origin main` → `git rebase origin/main`；有冲突先解决（版本号取自己的）。
+2. **跑测试**：`npm test`（Windows 上 `test/workspaces.test.mjs` 本来就失败，可排除）。
+3. **提 PR 并合入**：`main` 上必须已经包含本次改动和版本号；未合入不得发布。
+4. **从 main 打 tag**：`git checkout main && git pull && git tag v<version> && git push <remote> v<version>`。
+5. **发布**：`npm publish --access public`，随后核对 registry：
+   ```bash
+   npm view dsh-lark-ctrl version          # 应为新版本
+   npm view dsh-lark-ctrl dist-tags.latest # 应指向新版本
+   ```
+6. **发布后自检**：`npm pack dsh-lark-ctrl@<version> --silent` 解开看关键文件是否都在（例如 `lib/version.js`），
+   确认没有漏掉上游最近的修复。
+
+已经发错的版本不要尝试覆盖（版本号不可复用），改为发布下一个补丁版本，并对旧版本执行
+`npm deprecate dsh-lark-ctrl@<bad-version> "<原因，请使用 <new-version>>"`。
+
 ## 工作方式
 
 ```text
