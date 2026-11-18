@@ -158,3 +158,36 @@ test('approval card includes the exact command and retains it after a Lark decis
     dispose()
   }
 })
+
+
+test('pendingFor exposes the open question and resendQuestion re-posts the card', async () => {
+  const { answerer, cards, listeners, dispose, setLevel } = harness()
+  try {
+    setLevel(1)
+    assert.equal(answerer.pendingFor('session-1'), undefined)
+    const request = {
+      agent: { id: 'session-1' },
+      questions: [{ id: 'q1', question: '继续吗？', options: [{ label: '继续' }, { label: '停止' }] }],
+      wait: { callId: 'call-9' },
+      signal: new AbortController().signal,
+    }
+    let resolveWeb
+    const web = new Promise((resolve) => { resolveWeb = resolve })
+    // Swallow a late abort rejection: dispose() rejects any still-open entry.
+    const pending = Promise.resolve(listeners['user-questions/request'](request, () => web)).catch(() => undefined)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    assert.equal(cards.length, 1)
+    const entry = answerer.pendingFor('session-1')
+    assert.ok(entry)
+    assert.equal(entry.sessionId, 'session-1')
+    assert.equal(await answerer.resendQuestion('session-1'), true)
+    assert.equal(cards.length, 2)
+    const result = await answerer.answerFromChoice('om_question', { qid: 'q1', label: '继续' }, 'ou_me')
+    assert.equal(result.ok, true)
+    await pending
+    assert.equal(answerer.pendingFor('session-1'), undefined)
+    resolveWeb?.({ answers: [] })
+  } finally {
+    dispose()
+  }
+})
