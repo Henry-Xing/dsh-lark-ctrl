@@ -10,6 +10,7 @@ test('defaults are stable', () => {
   assert.equal(config.answerMode, 'race')
   assert.equal(config.approvalMode, 'always')
   assert.equal(config.btwMode, 'auto')
+  assert.equal(config.blockWhilePending, true)
   assert.equal(config.defaultTarget, 'last')
   assert.equal(config.idleGraceMs, 3000)
   assert.deepEqual(config.allowUsers, [])
@@ -21,6 +22,7 @@ test('invalid enums fall back with warnings', () => {
   assert.equal(config.answerMode, 'race')
   assert.equal(config.approvalMode, 'always')
   assert.equal(config.btwMode, 'auto')
+  assert.equal(config.blockWhilePending, true)
   assert.equal(config.defaultTarget, 'last')
   assert.equal(config.warnings.length, 4)
 })
@@ -35,4 +37,9 @@ test('numeric bounds are clamped', () => {
   assert.equal(config.summaryMaxChars, 200)
   assert.equal(config.idleGraceMs, 30000)
   assert.equal(config.btwTimeoutMs, 5000)
+})
+
+test('blockWhilePending can be disabled', () => {
+  const config = normalizeConfig({ blockWhilePending: false })
+  assert.equal(config.blockWhilePending, false)
 })
